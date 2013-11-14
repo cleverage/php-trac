@@ -1,0 +1,20 @@
+{
+    "name": "cleverage/php-trac",
+    "description": "Api for querying Trac RPC",
+    "keywords": ["trac", "php"],
+    "homepage": "https://github.com/cleverage/php-trac",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Florian Vilpoix"
+        }
+    ],
+    "autoload": {
+        "psr-0": { "CleverAge\\PHPTrac": "src/" }
+    },
+    "require": {
+        "php": ">=5.3",
+        "symfony/options-resolver": "2.3.*@dev",
+        "kriswallsmith/buzz": "dev-master"
+    }
+}
