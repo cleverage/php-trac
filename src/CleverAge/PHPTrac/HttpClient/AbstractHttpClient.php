@@ -19,6 +19,17 @@ abstract class AbstractHttpClient implements HttpClientInterface
         return $this->parseResponse($response);
     }
 
+    public function doManyRequests(array $requests, array $headers = array())
+    {
+        $responses = array();
+
+        foreach ($requests as $k => $request) {
+            $responses[$k] = $this->doRequest($request, $headers);
+        }
+
+        return $responses;
+    }
+
     abstract protected function post($params, array $headers = array());
 
     abstract protected function getArrayResultFromResponse($response);

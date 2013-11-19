@@ -40,3 +40,21 @@ Tested with Trac 0.12 and API version 1.1.2-r12546.
 * `ticket.class`: The class object to use when getting tickets. Default is `CleverAge\PHPTrac\Ticket`.
 * `auth`: Supports **none** and **Basic http**. Use `CleverAge\PHPTrac\TracApi::AUTH_*` constants, default is `AUTH_NONE`.
     * if `auth` is `AUTH_BASIC`, then you must provide `user.login` and `user.password`.
+
+## Performances
+
+If you use Guzzle HttpClient, some requests are parallelized, so it improves performances, using MultiCurl :
+
+    $tracOptions = array(
+        'url' => 'http://www.mytrac.org',
+    );
+    
+    $client = new \CleverAge\PHPTrac\HttpClient\Guzzle\GuzzleHttpClient();
+    $client->setParallelLimit(10); // default is 5
+
+    $trac = new \CleverAge\PHPTrac\TracApi($tracOptions, $client);
+
+    $tickets = $trac->getManyTicketsByIds(array(100, 101, 102, 103));
+    foreach ($tickets as $ticket) {
+        echo $ticket->id. ' : '.$ticket->status;
+    }

@@ -81,6 +81,17 @@ class TracApi
         return $this->client->doRequest($queryParams, array_merge($this->config['headers'], $headers));
     }
 
+    protected function doManyRequests(array $requests, array $headers = array())
+    {
+        $finalRequests = array();
+
+        foreach ($requests as $request) {
+            $finalRequests[] = $this->prepareQueryParams($request[0], $request[1]);
+        }
+
+        return $this->client->doManyRequests($finalRequests, array_merge($this->config['headers'], $headers));
+    }
+
     protected function prepareQueryParams($method, array $params = array())
     {
         return array(
@@ -99,21 +110,48 @@ class TracApi
     public function getTicketById($id)
     {
         $arrayFromApi = $this->doRequest('ticket.get', array($id));
-        $class = $this->config['ticket.class'];
-        return new $class($this->config['url'], $arrayFromApi);
+        return $this->createTicketFromApi($arrayFromApi);
+    }
+
+    public function getManyTicketsByIds(array $ids)
+    {
+        if (empty($ids)) {
+            return array();
+        }
+
+        $requests = array();
+        foreach ($ids as $id) {
+            $requests[] = array('ticket.get', array($id));
+        }
+
+        $arraysFromApi = $this->doManyRequests($requests);
+
+        $tickets = array();
+
+        foreach ($arraysFromApi as $arrayFromApi) {
+            $tickets[] = $this->createTicketFromApi($arrayFromApi);
+        }
+
+        return $tickets;
     }
 
     // ------ Aggregations ------ \\
 
     public function getTicketListByStatus($status = '', $limit = 0)
     {
-        $list = $this->getTicketIdsByStatus($status, $limit);
+        $ids = $this->getTicketIdsByStatus($status, $limit);
 
-        $tickets = [];
-        foreach($list as $id) {
-            $tickets[] = $this->getTicketById((int) $id);
-        }
+        return $this->getManyTicketsByIds($ids);
+    }
 
-        return $tickets;
+    // ------ Tools ------ \\
+    /**
+     * @param array $arrayFromApi
+     * @return Ticket
+     */
+    protected function createTicketFromApi(array $arrayFromApi)
+    {
+        $class = $this->config['ticket.class'];
+        return new $class($this->config['url'], $arrayFromApi);
     }
 }

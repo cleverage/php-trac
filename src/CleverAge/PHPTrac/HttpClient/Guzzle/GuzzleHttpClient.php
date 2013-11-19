@@ -15,6 +15,11 @@ class GuzzleHttpClient extends AbstractHttpClient
      */
     protected $client;
 
+    /**
+     * @var int
+     */
+    protected $parallelLimit = 5;
+
     public function __construct(Client $client = null)
     {
         if (!$client) {
@@ -22,6 +27,17 @@ class GuzzleHttpClient extends AbstractHttpClient
         }
 
         $this->client = $client;
+    }
+
+    /**
+     * @param int $limit
+     * @return \CleverAge\PHPTrac\HttpClient\Guzzle\GuzzleHttpClient
+     */
+    public function setParallelLimit($limit)
+    {
+        $this->parallelLimit = (int) $limit;
+
+        return $this;
     }
 
     public function setBaseUrl($url)
@@ -44,5 +60,31 @@ class GuzzleHttpClient extends AbstractHttpClient
         }
 
         return $response->json();
+    }
+
+    public function doManyRequests(array $requests, array $headers = array())
+    {
+        $totalToDo = count($requests);
+        $responses = array();
+
+        try {
+            while($totalToDo > 0) {
+                $clientRequests = array();
+                for($i=0; $i < $this->parallelLimit && $totalToDo > 0; $i++, $totalToDo--) {
+                    $clientRequests[] = $this->client->post('', $headers, json_encode(array_shift($requests)));
+                }
+                $responses = array_merge($responses, $this->client->send($clientRequests));
+            }
+        } catch (\Exception $e) {
+            throw new Exception('Error in Trac request : '.$e->getMessage());
+        }
+
+        $results = array();
+
+        foreach ($responses as $k => $response) {
+            $results[$k] = $this->parseResponse($response);
+        }
+
+        return $results;
     }
 }
