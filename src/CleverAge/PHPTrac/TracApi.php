@@ -6,10 +6,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 use Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
 
-use Buzz\Browser;
-use Buzz\Client\Curl;
-use Buzz\Message\RequestInterface;
-use Buzz\Message\MessageInterface;
+use CleverAge\PHPTrac\HttpClient\HttpClientInterface;
 
 class TracApi
 {
@@ -21,12 +18,18 @@ class TracApi
      */
     protected $config;
 
-    public function __construct(array $config)
-    {
-        $resolver = new OptionsResolver();
-        $this->setDefaultOptions($resolver);
+    /**
+     * @var CleverAge\PHPTrac\HttpClient\HttpClientInterface
+     */
+    protected $client;
 
-        $this->config = $resolver->resolve($config);
+    // ------ INIT ------ \\
+
+    public function __construct(array $config, HttpClientInterface $client)
+    {
+        $this->config = $this->resolveConfig($config);
+        $this->client = $client;
+        $this->client->setBaseUrl($this->config['url']);
     }
 
     protected function setDefaultOptions(OptionsResolverInterface $resolver)
@@ -45,78 +48,52 @@ class TracApi
         ;
     }
 
-    protected function doRequest($method, array $params = [], $type = RequestInterface::METHOD_POST)
+    protected function resolveConfig(array $config)
     {
-        $queryParams = [
-            'params' => $params,
-            'method' => $method,
-        ];
+        $resolver = new OptionsResolver();
+        $this->setDefaultOptions($resolver);
+        $config = $resolver->resolve($config);
 
-        $buzzClient = new Curl();
-        $browser = new Browser($buzzClient);
-
-        $headers = array(
+        $config['headers'] = array(
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
         );
 
-        if ($this->config['auth'] == self::AUTH_BASIC) {
+        if ($config['auth'] == self::AUTH_BASIC) {
 
-            if (!array_key_exists('user.login', $this->config) || !array_key_exists('user.password', $this->config)) {
+            if (!array_key_exists('user.login', $config) || !array_key_exists('user.password', $config)) {
                 throw new MissingOptionsException('user.login and user.password must be provided for Basic auth');
             }
 
-            $headers['Authorization'] = 'Basic '.base64_encode($this->config['user.login'].':'.$this->config['user.password']);
+            $config['headers']['Authorization'] = 'Basic '.base64_encode($config['user.login'].':'.$config['user.password']);
         }
 
-        $path = $this->config['auth'] == self::AUTH_NONE ? 'jsonrpc' : 'login/jsonrpc';
-        $url = $this->config['url'].$path;
+        $config['url'] .= $config['auth'] == self::AUTH_NONE ? 'jsonrpc' : 'login/jsonrpc';
 
-        try {
-            $response = $browser->call($url, $type, $headers, json_encode($queryParams));
-
-        } catch (\Exception $e) {
-            throw new Exception('Error in Trac request : '.$e->getMessage());
-        }
-
-        return $this->parseResponse($response);
+        return $config;
     }
 
-    protected function parseResponse(MessageInterface $response)
+    // ------ HTTP ------ \\
+
+    protected function doRequest($method, array $params = array(), array $headers = array())
     {
-        $error = null;
-
-        $headers = $response->getHeaders();
-
-        if (false === strpos($headers[0], '200')) {
-            $error = $headers[0];
-        } else {
-            $result = json_decode($response->getContent(), true);
-
-            if (!is_array($result) || !array_key_exists('result', $result)) {
-                $error = $result;
-            } elseif (array_key_exists('error', $result) && !empty($result['error'])) {
-                $error = $result['error']['code'].' : '.$result['error']['message'];
-            }
-        }
-
-        if (!is_null($error)) {
-            throw new Exception('Incorrect response : '.$error);
-        }
-
-        return $result['result'];
+        $queryParams = $this->prepareQueryParams($method, $params);
+        return $this->client->doRequest($queryParams, array_merge($this->config['headers'], $headers));
     }
 
-    public function getTicketListByStatus($status = '', $limit = 0)
+    protected function prepareQueryParams($method, array $params = array())
     {
-        $list = $this->doRequest('ticket.query', array('status='.$status.'&max='.$limit));
+        return array(
+            'params' => $params,
+            'method' => $method,
+        );
+    }
 
-        $tickets = [];
-        foreach($list as $id) {
-            $tickets[] = $this->getTicketById((int) $id);
-        }
+    // ------ Public Functional Methods ------ \\
 
-        return $tickets;
+    public function getTicketIdsByStatus($status = '', $limit = 0)
+    {
+        return $this->doRequest('ticket.query', array('status='.$status.'&max='.$limit));
     }
 
     public function getTicketById($id)
@@ -124,5 +101,19 @@ class TracApi
         $arrayFromApi = $this->doRequest('ticket.get', array($id));
         $class = $this->config['ticket.class'];
         return new $class($this->config['url'], $arrayFromApi);
+    }
+
+    // ------ Aggregations ------ \\
+
+    public function getTicketListByStatus($status = '', $limit = 0)
+    {
+        $list = $this->getTicketIdsByStatus($status, $limit);
+
+        $tickets = [];
+        foreach($list as $id) {
+            $tickets[] = $this->getTicketById((int) $id);
+        }
+
+        return $tickets;
     }
 }

@@ -4,6 +4,12 @@
 Interface PHP 5.3+ to query [TRAC](http://trac.edgewall.org/) via its `RPC` api. `JSON` version is actually 
 used.
 
+## Installation
+
+With composer : `php composer.phar require "cleverage/php-trac": "dev-master"`
+
+It needs Buzz (default with Curl) or Guzzle to proceed HTTP queries.
+
 ## Compatibility
 
 Tested with Trac 0.12 and API version 1.1.2-r12546.
@@ -15,7 +21,10 @@ Tested with Trac 0.12 and API version 1.1.2-r12546.
         'url' => 'http://www.mytrac.org',
     );
     
-    $trac = new \CleverAge\PHPTrac\TracApi($tracOptions);
+    $client = new \CleverAge\PHPTrac\HttpClient\Guzzle\GuzzleHttpClient();
+    // $client = new \CleverAge\PHPTrac\HttpClient\Buzz\BuzzHttpClient();
+
+    $trac = new \CleverAge\PHPTrac\TracApi($tracOptions, $client);
 
     $ticket = $trac->getTicketById(101);
     echo $ticket->id. ' : '.$ticket->status;
