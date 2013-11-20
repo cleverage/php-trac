@@ -1,8 +1,8 @@
 <?php
 
-namespace CleverAge\PHPTrac\HttpClient;
+namespace CleverAge\Trac\HttpClient;
 
-use CleverAge\PHPTrac\Exception;
+use CleverAge\Trac\Exception;
 
 abstract class AbstractHttpClient implements HttpClientInterface
 {

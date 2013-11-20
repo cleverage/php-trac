@@ -1,12 +1,12 @@
 <?php
 
-namespace CleverAge\PHPTrac\HttpClient\Guzzle;
+namespace CleverAge\Trac\HttpClient\Guzzle;
 
-use CleverAge\PHPTrac\HttpClient\AbstractHttpClient;
+use CleverAge\Trac\HttpClient\AbstractHttpClient;
 use Guzzle\Http\Client;
 use Guzzle\Http\Message\Response;
 
-use CleverAge\PHPTrac\Exception;
+use CleverAge\Trac\Exception;
 
 class GuzzleHttpClient extends AbstractHttpClient
 {
@@ -31,7 +31,7 @@ class GuzzleHttpClient extends AbstractHttpClient
 
     /**
      * @param int $limit
-     * @return \CleverAge\PHPTrac\HttpClient\Guzzle\GuzzleHttpClient
+     * @return \CleverAge\Trac\HttpClient\Guzzle\GuzzleHttpClient
      */
     public function setParallelLimit($limit)
     {

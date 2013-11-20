@@ -1,12 +1,12 @@
 <?php
 
-namespace CleverAge\PHPTrac;
+namespace CleverAge\Trac;
 
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 use Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
 
-use CleverAge\PHPTrac\HttpClient\HttpClientInterface;
+use CleverAge\Trac\HttpClient\HttpClientInterface;
 
 class TracApi
 {
@@ -19,7 +19,7 @@ class TracApi
     protected $config;
 
     /**
-     * @var CleverAge\PHPTrac\HttpClient\HttpClientInterface
+     * @var CleverAge\Trac\HttpClient\HttpClientInterface
      */
     protected $client;
 
@@ -43,7 +43,7 @@ class TracApi
             ))
             ->setDefaults(array(
                 'auth' => self::AUTH_NONE,
-                'ticket.class' => 'CleverAge\PHPTrac\Ticket'
+                'ticket.class' => 'CleverAge\Trac\Ticket'
             ))
         ;
     }

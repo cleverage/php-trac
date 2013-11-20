@@ -10,7 +10,7 @@
         }
     ],
     "autoload": {
-        "psr-0": { "CleverAge\\PHPTrac": "src/" }
+        "psr-0": { "CleverAge\\Trac": "src/" }
     },
     "require": {
         "php": ">=5.3",

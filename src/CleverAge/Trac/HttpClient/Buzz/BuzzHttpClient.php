@@ -1,13 +1,13 @@
 <?php
 
-namespace CleverAge\PHPTrac\HttpClient\Buzz;
+namespace CleverAge\Trac\HttpClient\Buzz;
 
 use Buzz\Browser;
 use Buzz\Client\Curl;
 use Buzz\Message\MessageInterface;
 
-use CleverAge\PHPTrac\Exception;
-use CleverAge\PHPTrac\HttpClient\AbstractHttpClient;
+use CleverAge\Trac\Exception;
+use CleverAge\Trac\HttpClient\AbstractHttpClient;
 
 class BuzzHttpClient extends AbstractHttpClient
 {

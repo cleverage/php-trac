@@ -1,6 +1,6 @@
 <?php
 
-namespace CleverAge\PHPTrac;
+namespace CleverAge\Trac;
 
 class Exception extends \Exception
 {

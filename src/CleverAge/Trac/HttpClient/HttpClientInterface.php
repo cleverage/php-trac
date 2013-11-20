@@ -1,6 +1,6 @@
 <?php
 
-namespace CleverAge\PHPTrac\HttpClient;
+namespace CleverAge\Trac\HttpClient;
 
 interface HttpClientInterface
 {
