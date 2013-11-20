@@ -29,7 +29,7 @@ class TracApi
     {
         $this->config = $this->resolveConfig($config);
         $this->client = $client;
-        $this->client->setBaseUrl($this->config['url']);
+        $this->client->setBaseUrl($this->config['apiurl']);
     }
 
     protected function setDefaultOptions(OptionsResolverInterface $resolver)
@@ -68,7 +68,7 @@ class TracApi
             $config['headers']['Authorization'] = 'Basic '.base64_encode($config['user.login'].':'.$config['user.password']);
         }
 
-        $config['url'] .= $config['auth'] == self::AUTH_NONE ? 'jsonrpc' : 'login/jsonrpc';
+        $config['apiurl'] = $config['url'] . ($config['auth'] == self::AUTH_NONE ? 'jsonrpc' : 'login/jsonrpc');
 
         return $config;
     }

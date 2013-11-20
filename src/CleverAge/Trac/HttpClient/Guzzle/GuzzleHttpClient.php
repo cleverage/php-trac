@@ -76,7 +76,7 @@ class GuzzleHttpClient extends AbstractHttpClient
                 $responses = array_merge($responses, $this->client->send($clientRequests));
             }
         } catch (\Exception $e) {
-            throw new Exception('Error in Trac request : '.$e->getMessage());
+            throw new Exception('Error in request : '.$e->getMessage());
         }
 
         $results = array();

@@ -13,7 +13,7 @@ abstract class AbstractHttpClient implements HttpClientInterface
 
         } catch (\Exception $e) {
 
-            throw new Exception('Error in Trac request : '.$e->getMessage());
+            throw new Exception('Error in request : '.$e->getMessage());
         }
 
         return $this->parseResponse($response);
