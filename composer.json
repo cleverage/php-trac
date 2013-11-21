@@ -14,7 +14,7 @@
     },
     "require": {
         "php": ">=5.3",
-        "symfony/options-resolver": "2.3.*@dev"
+        "symfony/options-resolver": ">=2.3"
     },
     "suggest": {
         "guzzle/guzzle": "v3.7.4",
