@@ -36,14 +36,15 @@ class TracApi
     {
         $resolver
             ->setRequired(array(
-                'url', 'ticket.class', 'auth'
+                'url', 'ticket.class', 'auth', 'milestone.class'
             ))
             ->setOptional(array(
                 'user.login', 'user.password'
             ))
             ->setDefaults(array(
                 'auth' => self::AUTH_NONE,
-                'ticket.class' => 'CleverAge\Trac\Ticket'
+                'ticket.class' => 'CleverAge\Trac\Model\Ticket',
+                'milestone.class' => 'CleverAge\Trac\Model\Milestone'
             ))
         ;
     }
@@ -102,9 +103,11 @@ class TracApi
 
     // ------ Public Functional Methods ------ \\
 
-    public function getTicketIdsByStatus($status = '', $limit = 0)
+    public function getTicketIdsBy(array $filters = array(), $limit = 0)
     {
-        return $this->doRequest('ticket.query', array('status='.$status.'&max='.$limit));
+        $f = $this->parseFilters($filters);
+
+        return $this->doRequest('ticket.query', array(($f ? $f.'&':'').'max='.$limit));
     }
 
     public function getTicketById($id)
@@ -135,11 +138,45 @@ class TracApi
         return $tickets;
     }
 
+    /**
+     * @param boolean|null $completed
+     * @return array<Model\Milestone>
+     */
+    public function getMilestones($completed = null)
+    {
+        $ids = $this->doRequest('ticket.milestone.getAll');
+
+        if (empty($ids)) {
+            return array();
+        }
+
+        $requests = array();
+        foreach ($ids as $id) {
+            $requests[] = array('ticket.milestone.get', array($id));
+        }
+
+        $arraysFromApi = $this->doManyRequests($requests);
+
+        $milestones = array();
+
+        foreach ($arraysFromApi as $arrayFromApi) {
+            if (
+                (true === $completed && $arrayFromApi['completed'] != '0')
+            || (false === $completed && $arrayFromApi['completed'] == '0')
+            || null === $completed
+            ) {
+                $milestones[] = $this->createMilestoneFromApi($arrayFromApi);
+            }
+        }
+
+        return $milestones;
+    }
+
     // ------ Aggregations ------ \\
 
-    public function getTicketListByStatus($status = '', $limit = 0)
+    public function getTicketListBy($filters = array(), $limit = 0)
     {
-        $ids = $this->getTicketIdsByStatus($status, $limit);
+        $ids = $this->getTicketIdsBy($filters, $limit);
 
         return $this->getManyTicketsByIds($ids);
     }
@@ -147,11 +184,32 @@ class TracApi
     // ------ Tools ------ \\
     /**
      * @param array $arrayFromApi
-     * @return Ticket
+     * @return Model\Ticket
      */
     protected function createTicketFromApi(array $arrayFromApi)
     {
         $class = $this->config['ticket.class'];
         return new $class($this->config['url'], $arrayFromApi);
+    }
+
+    /**
+     * @param array $arrayFromApi
+     * @return \CleverAge\Trac\Model\Milestone
+     */
+    protected function createMilestoneFromApi(array $arrayFromApi)
+    {
+        $class = $this->config['milestone.class'];
+        return new $class($arrayFromApi);
+    }
+
+    protected function parseFilters(array $filters)
+    {
+        $f = array();
+
+        foreach ($filters as $k => $v) {
+            $f[] = $k.'='.$v;
+        }
+
+        return implode('&', $f);
     }
 }
