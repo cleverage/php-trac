@@ -13,6 +13,12 @@ class TracApi
     const AUTH_NONE = 0;
     const AUTH_BASIC = 1;
 
+    const STATUS_NEW        = 'new';
+    const STATUS_ASSIGNED   = 'assigned';
+    const STATUS_ACCEPTED   = 'accepted';
+    const STATUS_REOPENED   = 'reopened';
+    const STATUS_CLOSED     = 'closed';
+
     /**
      * @var array
      */
