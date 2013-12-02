@@ -178,6 +178,26 @@ class TracApi
         return $milestones;
     }
 
+    public function updateTicket($id, array $attributes = array(), $comment = '', $notify = false, $author = '', \DateTime $updateAt = null)
+    {
+        if (is_null($updateAt)) {
+            $updateAt = new \DateTime();
+        }
+
+        $request = array(
+            $id,
+            $comment,
+            $attributes,
+            $notify ? '1' : '0',
+            $author,
+            $updateAt->format('Y-m-d H:i:s'),
+        );
+
+        $arrayFromApi = $this->doRequest('ticket.update', $request);
+
+        return $this->createTicketFromApi($arrayFromApi);
+    }
+
     // ------ Aggregations ------ \\
 
     public function getTicketListBy($filters = array(), $limit = 0)
