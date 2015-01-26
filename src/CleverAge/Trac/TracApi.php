@@ -233,7 +233,13 @@ class TracApi
         $f = array();
 
         foreach ($filters as $k => $v) {
-            $f[] = $k.'='.$v;
+            if (is_array($v)) {
+                foreach ($v as $vk) {
+                    $f[] = $k.'='.$vk;
+                }
+            } else {
+                $f[] = $k.'='.$v;
+            }
         }
 
         return implode('&', $f);
